@@ -97,6 +97,18 @@ COPY config/php.ini /etc/php7/conf.d/zzz_custom.ini
 # Configure supervisord
 COPY config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+RUN apk --update add vim
+
+RUN pecl install xdebug \
+    && echo "zend_extension=/usr/lib/php7/modules/xdebug.so" >> /etc/php7/conf.d/xdebug.ini \
+    && echo "xdebug.idekey = DOCKER" >> /etc/php7/conf.d/xdebug.ini \
+    && echo "xdebug.default_enable = 0" >> /etc/php7/conf.d/xdebug.ini \
+    && echo "xdebug.remote_enable = 1" >> /etc/php7/conf.d/xdebug.ini \
+    && echo "xdebug.remote_autostart = 0" >> /etc/php7/conf.d/xdebug.ini \
+    && echo "xdebug.remote_connect_back = 0" >> /etc/php7/conf.d/xdebug.ini \
+    && echo "xdebug.profiler_enable = 0" >> /etc/php7/conf.d/xdebug.ini \
+    && echo "xdebug.remote_host = 127.17.0.2" >> /etc/php7/conf.d/xdebug.ini
+
 # Add application
 RUN mkdir -p /workspace
 WORKDIR /workspace
@@ -136,7 +148,7 @@ USER $UNAME
 
 RUN sudo mkdir /var/log/supervisord
 
-EXPOSE 80 443
+EXPOSE 80 443 9000
 
 CMD ["sudo", "/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 #ENTRYPOINT ["/bin/zsh"]
