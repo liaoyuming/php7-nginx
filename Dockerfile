@@ -24,7 +24,8 @@ RUN apk --update add \
     openssh \
     supervisor \
     curl \
-    curl-dev
+    curl-dev \
+    wget
 
 RUN apk --update add \
     php7 \
@@ -51,6 +52,7 @@ RUN apk --update add \
 		php7-fpm \
     php7-pear \
     php7-phar \
+    php7-zlib \
     --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
     --repository http://dl-cdn.alpinelinux.org/alpine/edge/community
 
@@ -101,13 +103,15 @@ RUN apk --update add vim
 
 RUN pecl install xdebug \
     && echo "zend_extension=/usr/lib/php7/modules/xdebug.so" >> /etc/php7/conf.d/xdebug.ini \
-    && echo "xdebug.idekey = DOCKER" >> /etc/php7/conf.d/xdebug.ini \
+    && echo "xdebug.idekey = xdebug-atom" >> /etc/php7/conf.d/xdebug.ini \
     && echo "xdebug.default_enable = 0" >> /etc/php7/conf.d/xdebug.ini \
     && echo "xdebug.remote_enable = 1" >> /etc/php7/conf.d/xdebug.ini \
-    && echo "xdebug.remote_autostart = 0" >> /etc/php7/conf.d/xdebug.ini \
-    && echo "xdebug.remote_connect_back = 0" >> /etc/php7/conf.d/xdebug.ini \
+    && echo "xdebug.remote_autostart = 1" >> /etc/php7/conf.d/xdebug.ini \
+    && echo "xdebug.remote_connect_back = 1" >> /etc/php7/conf.d/xdebug.ini \
     && echo "xdebug.profiler_enable = 0" >> /etc/php7/conf.d/xdebug.ini \
-    && echo "xdebug.remote_host = 127.17.0.2" >> /etc/php7/conf.d/xdebug.ini
+    && echo "xdebug.remote_host = 127.17.0.1" >> /etc/php7/conf.d/xdebug.ini \
+    && echo "xdebug.remote_port = 9001" >> /etc/php7/conf.d/xdebug.ini \
+    && echo "xdebug.remote_log = /var/log/xdebug.log" >> /etc/php7/conf.d/xdebug.ini
 
 # Add application
 RUN mkdir -p /workspace
@@ -144,11 +148,16 @@ RUN cd $UHOME \
     && git clone --depth 1 git://github.com/robbyrussell/oh-my-zsh.git .oh-my-zsh \
     && cp $UHOME/.oh-my-zsh/templates/zshrc.zsh-template $UHOME/.zshrc
 
+# phpunit
+RUN wget https://phar.phpunit.de/phpunit-6.2.phar \
+    chmod +x phpunit-6.2.phar \
+    sudo mv phpunit-6.2.phar /usr/local/bin/phpunit
+
 USER $UNAME
 
 RUN sudo mkdir /var/log/supervisord
 
-EXPOSE 80 443 9000
+EXPOSE 80 443 9001
 
 CMD ["sudo", "/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 #ENTRYPOINT ["/bin/zsh"]
