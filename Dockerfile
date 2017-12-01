@@ -144,18 +144,22 @@ RUN apk add sudo \
     && echo "${GNAME}:x:${GID}:${UNAME}" \
     >> /etc/group
 
+# oh-my-zsh
 RUN cd $UHOME \
     && git clone --depth 1 git://github.com/robbyrussell/oh-my-zsh.git .oh-my-zsh \
     && cp $UHOME/.oh-my-zsh/templates/zshrc.zsh-template $UHOME/.zshrc
 
 # phpunit
-RUN wget https://phar.phpunit.de/phpunit-6.2.phar \
-    chmod +x phpunit-6.2.phar \
-    sudo mv phpunit-6.2.phar /usr/local/bin/phpunit
+ADD https://phar.phpunit.de/phpunit-6.2.phar /usr/local/bin/phpunit
+RUN chmod +x /usr/local/bin/phpunit
 
 USER $UNAME
 
 RUN sudo mkdir /var/log/supervisord
+
+# pre-commit
+RUN sudo apk add bash
+RUN curl https://bootstrap.pypa.io/get-pip.py | sudo python - pre-commit
 
 EXPOSE 80 443 9001
 
